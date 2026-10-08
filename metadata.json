@@ -1,0 +1,6 @@
+{
+  "name": "MessMeal - Smart Mess & Meal Tracker",
+  "description": "Natural language mess meal and expense management web app. Track daily meals, bazar costs, utility bills, member deposits, and live meal rate calculations.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
