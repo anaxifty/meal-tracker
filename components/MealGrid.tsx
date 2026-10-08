@@ -246,7 +246,7 @@ export function MealGrid({
                             className="group flex items-center justify-center gap-1 py-1 px-1 rounded-sm cursor-pointer hover:bg-emerald-100/50"
                           >
                             <span
-                              className={`font-semibold ${
+                              className={`font-semibold font-mono tabular-nums ${
                                 count > 0 ? 'text-slate-900' : 'text-slate-300'
                               }`}
                             >
@@ -319,12 +319,12 @@ export function MealGrid({
               {activeMembers.map((m) => (
                 <td
                   key={m.id}
-                  className="py-2.5 px-2 text-center border-r border-slate-300 font-extrabold text-sky-900 text-sm"
+                  className="py-2.5 px-2 text-center border-r border-slate-300 font-extrabold text-sky-900 text-sm font-mono tabular-nums"
                 >
                   {memberTotals[m.id]}
                 </td>
               ))}
-              <td className="py-2.5 px-2 text-center border-r border-slate-300 font-extrabold text-amber-900 bg-amber-100 text-sm">
+              <td className="py-2.5 px-2 text-center border-r border-slate-300 font-extrabold text-amber-900 bg-amber-100 text-sm font-mono tabular-nums">
                 {grandTotalMeals}
               </td>
               <td></td>

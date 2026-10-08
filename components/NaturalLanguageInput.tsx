@@ -181,11 +181,24 @@ export function NaturalLanguageInput({ members, onParsedResults }: NaturalLangua
             }}
           />
 
-          <div className="absolute right-2.5 bottom-3.5 flex items-center gap-1.5">
+          <div className="absolute right-2.5 bottom-3.5 flex items-center gap-2">
+            <span className="hidden sm:inline-block text-[10px] text-slate-400 font-mono">
+              Ctrl + ↵
+            </span>
+            {input.trim() && (
+              <button
+                type="button"
+                onClick={() => setInput('')}
+                className="text-xs text-slate-400 hover:text-slate-600 px-1.5 py-1"
+                title="মুছুন"
+              >
+                ক্লিয়ার
+              </button>
+            )}
             <button
               type="submit"
               disabled={loading || !input.trim()}
-              className="inline-flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-medium text-xs px-3.5 py-2 rounded-lg transition-colors shadow-2xs cursor-pointer"
+              className="inline-flex items-center gap-1.5 bg-slate-900 hover:bg-slate-800 disabled:opacity-40 text-white font-medium text-xs px-3.5 py-2 rounded-lg transition-colors shadow-2xs cursor-pointer"
             >
               {loading ? (
                 <>
@@ -194,7 +207,7 @@ export function NaturalLanguageInput({ members, onParsedResults }: NaturalLangua
                 </>
               ) : (
                 <>
-                  <Sparkles className="w-3.5 h-3.5" />
+                  <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
                   <span>যুক্ত করুন</span>
                 </>
               )}

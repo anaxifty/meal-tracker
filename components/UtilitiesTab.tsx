@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Wifi, Flame, Zap, Plus, Trash2, Calendar, UserCheck, ShieldAlert } from 'lucide-react';
+import { Wifi, Flame, Zap, Plus, Trash2, Calendar, UserCheck, Search, Filter } from 'lucide-react';
 import { UtilityExpense, Member } from '@/types/mess';
 import { formatBdt } from '@/lib/bengali-utils';
 
@@ -19,6 +19,8 @@ export function UtilitiesTab({
   onDeleteUtility,
 }: UtilitiesTabProps) {
   const [showAddModal, setShowAddModal] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategoryFilter, setSelectedCategoryFilter] = useState('');
   const [category, setCategory] = useState<'wifi' | 'current' | 'gas' | 'other'>('wifi');
   const [title, setTitle] = useState('Wifi Bill');
   const [amount, setAmount] = useState('');
@@ -29,6 +31,15 @@ export function UtilitiesTab({
   const activeMembers = members.filter((m) => m.active);
   const totalUtilities = utilities.reduce((sum, u) => sum + (Number(u.amount) || 0), 0);
   const perHeadAvg = activeMembers.length > 0 ? totalUtilities / activeMembers.length : 0;
+
+  const filteredUtilities = utilities.filter((u) => {
+    if (selectedCategoryFilter && u.category !== selectedCategoryFilter) return false;
+    if (!searchQuery.trim()) return true;
+    const q = searchQuery.toLowerCase();
+    const payer = members.find((m) => m.id === u.paidById);
+    const payerMatch = payer && (payer.name.toLowerCase().includes(q) || (payer.bnName && payer.bnName.includes(q)));
+    return u.title.toLowerCase().includes(q) || u.category.includes(q) || payerMatch || u.date.includes(q);
+  });
 
   const handleCategorySelect = (cat: 'wifi' | 'current' | 'gas' | 'other') => {
     setCategory(cat);
@@ -64,46 +75,85 @@ export function UtilitiesTab({
   const getCategoryIcon = (cat: string) => {
     switch (cat) {
       case 'wifi':
-        return <Wifi className="w-4 h-4 text-sky-500" />;
+        return <Wifi className="w-3.5 h-3.5 text-sky-600" />;
       case 'gas':
-        return <Flame className="w-4 h-4 text-orange-500" />;
+        return <Flame className="w-3.5 h-3.5 text-orange-600" />;
       case 'current':
-        return <Zap className="w-4 h-4 text-amber-500" />;
+        return <Zap className="w-3.5 h-3.5 text-amber-600" />;
       default:
-        return <Wifi className="w-4 h-4 text-slate-500" />;
+        return <Wifi className="w-3.5 h-3.5 text-slate-500" />;
     }
   };
 
   return (
     <div className="space-y-4">
       {/* Top Banner */}
-      <div className="bg-white border border-slate-200/90 rounded-2xl p-4 sm:p-5 shadow-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <div className="bg-white border border-slate-200/90 rounded-xl p-4 sm:p-5 shadow-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
           <div className="flex items-center gap-2">
-            <h2 className="text-base font-bold text-slate-800">
+            <h2 className="text-base font-bold text-slate-900 tracking-tight">
               শেয়ার্ড ইউটিলিটি বিল (Wifi, Gas & Electricity)
             </h2>
-            <span className="text-xs bg-blue-100 text-blue-800 font-semibold px-2 py-0.5 rounded-full">
+            <span className="text-xs bg-slate-100 text-slate-700 font-medium px-2 py-0.5 rounded border border-slate-200">
               সমান ভাগে বণ্টন
             </span>
           </div>
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-slate-500 mt-0.5">
             এই বিলগুলো মিল রেটের বাইরে সবার জমার টাকা থেকে সমান ভাগে বিয়োগ হয়
           </p>
         </div>
 
         <div className="flex items-center gap-3">
           <div className="text-right">
-            <span className="text-xs text-slate-400 block">মাথাপিছু শেয়ার</span>
-            <span className="text-lg font-bold text-blue-700">{formatBdt(perHeadAvg)}</span>
+            <span className="text-[11px] text-slate-400 block font-medium">মাথাপিছু শেয়ার</span>
+            <span className="text-xl font-bold font-mono tabular-nums text-blue-700">{formatBdt(perHeadAvg)}</span>
           </div>
           <button
             onClick={() => setShowAddModal(true)}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white shadow-xs transition-colors cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white shadow-2xs transition-colors cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             <span>নতুন বিল লিখুন</span>
           </button>
+        </div>
+      </div>
+
+      {/* Search / Filter Bar */}
+      <div className="flex items-center flex-wrap gap-2.5 bg-white p-3 rounded-xl border border-slate-200/90">
+        <div className="flex-1 min-w-[200px] relative">
+          <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+          <input
+            type="text"
+            placeholder="বিলের নাম বা পরিশোধকারী সদস্য খুঁজুন..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full text-xs pl-8 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-hidden focus:bg-white focus:border-blue-500"
+          />
+        </div>
+
+        <div className="flex items-center gap-2">
+          <select
+            value={selectedCategoryFilter}
+            onChange={(e) => setSelectedCategoryFilter(e.target.value)}
+            className="text-xs py-1.5 px-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-700"
+          >
+            <option value="">সকল ক্যাটাগরি (All Types)</option>
+            <option value="wifi">ওয়াইফাই (Wifi)</option>
+            <option value="gas">গ্যাস সিলিন্ডার (Gas)</option>
+            <option value="current">কারেন্ট বিল (Current)</option>
+            <option value="other">অন্যান্য (Other)</option>
+          </select>
+          {(searchQuery || selectedCategoryFilter) && (
+            <button
+              onClick={() => {
+                setSearchQuery('');
+                setSelectedCategoryFilter('');
+              }}
+              className="text-xs text-blue-600 hover:underline cursor-pointer"
+            >
+              রিসেট
+            </button>
+          )}
         </div>
       </div>
 
@@ -177,8 +227,9 @@ export function UtilitiesTab({
                     value={amount}
                     onChange={(e) => setAmount(e.target.value)}
                     placeholder="যেমন: 750"
-                    className="w-full text-sm font-bold border border-slate-200 rounded-lg p-2.5 focus:border-blue-500 focus:outline-hidden text-slate-900"
+                    className="w-full text-sm font-bold border border-slate-200 rounded-lg p-2.5 focus:border-blue-500 focus:outline-hidden text-slate-900 font-mono tabular-nums"
                     required
+                    autoFocus
                   />
                 </div>
 
@@ -236,10 +287,10 @@ export function UtilitiesTab({
       )}
 
       {/* Utilities Table */}
-      <div className="bg-white border border-slate-200/90 rounded-2xl shadow-xs overflow-hidden">
-        {utilities.length === 0 ? (
-          <div className="py-12 text-center text-slate-400 text-sm">
-            এখনও কোন ইউটিলিটি বিল যোগ করা হয়নি।
+      <div className="bg-white border border-slate-200/90 rounded-xl shadow-xs overflow-hidden">
+        {filteredUtilities.length === 0 ? (
+          <div className="py-12 text-center text-slate-400 text-xs">
+            {searchQuery || selectedCategoryFilter ? 'কোনো বিলের রেকর্ড মেলেনি।' : 'এখনও কোন ইউটিলিটি বিল যোগ করা হয়নি।'}
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -255,43 +306,43 @@ export function UtilitiesTab({
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {utilities.map((u) => {
+                {filteredUtilities.map((u) => {
                   const payer = members.find((m) => m.id === u.paidById);
                   const share = activeMembers.length > 0 ? u.amount / activeMembers.length : 0;
                   return (
-                    <tr key={u.id} className="hover:bg-slate-50 transition-colors">
-                      <td className="py-3 px-4 font-mono text-slate-700 whitespace-nowrap">
+                    <tr key={u.id} className="hover:bg-slate-50/80 transition-colors">
+                      <td className="py-3 px-4 font-mono tabular-nums text-slate-700 whitespace-nowrap">
                         {u.date}
                       </td>
                       <td className="py-3 px-4 font-semibold text-slate-900">
                         <div className="flex items-center gap-2">
-                          <span className="p-1 rounded-md bg-slate-100">{getCategoryIcon(u.category)}</span>
+                          <span className="p-1 rounded bg-slate-100">{getCategoryIcon(u.category)}</span>
                           <span>{u.title}</span>
                         </div>
                       </td>
                       <td className="py-3 px-4">
                         {payer ? (
-                          <span className="inline-flex items-center gap-1 bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 rounded-md font-medium text-[11px]">
+                          <span className="inline-flex items-center gap-1 bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 rounded font-medium text-[11px]">
                             <UserCheck className="w-3 h-3" />
                             {payer.name} (নিজ পকেট থেকে)
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1 bg-slate-100 text-slate-600 px-2 py-0.5 rounded-md font-medium text-[11px]">
+                          <span className="inline-flex items-center gap-1 bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-medium text-[11px]">
                             মেস ফান্ড থেকে
                           </span>
                         )}
                       </td>
-                      <td className="py-3 px-4 text-center font-mono font-medium text-slate-700">
+                      <td className="py-3 px-4 text-center font-mono tabular-nums font-medium text-slate-700">
                         {formatBdt(share)}
                       </td>
-                      <td className="py-3 px-4 text-right font-bold text-blue-700 font-mono text-sm">
+                      <td className="py-3 px-4 text-right font-bold text-blue-700 font-mono tabular-nums text-sm">
                         {formatBdt(u.amount)}
                       </td>
                       <td className="py-3 px-4 text-center">
                         <button
                           onClick={() => onDeleteUtility(u.id)}
                           title="মুছুন"
-                          className="p-1 rounded-md text-slate-300 hover:text-rose-600 transition-colors"
+                          className="p-1 rounded text-slate-300 hover:text-rose-600 transition-colors"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
@@ -303,13 +354,13 @@ export function UtilitiesTab({
               <tfoot className="bg-slate-50 border-t border-slate-200 font-bold">
                 <tr>
                   <td colSpan={3} className="py-3 px-4 text-slate-700 uppercase">
-                    মোট ইউটিলিটি বিল (Total Utilities)
+                    মোট ইউটিলিটি বিল ({filteredUtilities.length} টি)
                   </td>
-                  <td className="py-3 px-4 text-center font-bold text-blue-800 font-mono">
-                    {formatBdt(perHeadAvg)} / মাথা
+                  <td className="py-3 px-4 text-center font-bold text-blue-800 font-mono tabular-nums">
+                    {formatBdt(filteredUtilities.reduce((s, u) => s + (Number(u.amount) || 0), 0) / (activeMembers.length || 1))} / মাথা
                   </td>
-                  <td className="py-3 px-4 text-right font-extrabold text-blue-800 text-sm font-mono">
-                    {formatBdt(totalUtilities)}
+                  <td className="py-3 px-4 text-right font-extrabold text-blue-800 text-sm font-mono tabular-nums">
+                    {formatBdt(filteredUtilities.reduce((s, u) => s + (Number(u.amount) || 0), 0))}
                   </td>
                   <td></td>
                 </tr>
